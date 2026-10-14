@@ -5,62 +5,20 @@ import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ctaLabels, products, site, type LeadIntent, type Product } from "@/content/site";
+import {
+  leadFields as fieldOrder,
+  userRanges,
+  validateField as validate,
+  type LeadErrors as Errors,
+  type LeadField as Field,
+  type LeadValues,
+} from "@/lib/lead";
 
-const ENDPOINT = process.env.NEXT_PUBLIC_LEAD_ENDPOINT || "/api/lead.php";
-const userRanges = ["1–10", "11–50", "51–100", "101–300", "Trên 300"];
+const ENDPOINT = "/api/lead/";
 
-type Values = {
-  company: string;
-  name: string;
-  email: string;
-  phone: string;
-  users: string;
-  products: string[];
-  message: string;
-  consent: boolean;
+type Values = LeadValues & {
   website: string; // honeypot, người thật không thấy ô này
 };
-type Field = Exclude<keyof Values, "website">;
-type Errors = Partial<Record<Field, string>>;
-
-const fieldOrder: Field[] = ["company", "name", "email", "phone", "users", "products", "message", "consent"];
-
-function validate(field: Field, values: Values): string | undefined {
-  const v = values[field];
-  switch (field) {
-    case "company":
-      if (!values.company.trim()) return "Nhập tên công ty";
-      if (values.company.length > 150) return "Tên công ty tối đa 150 ký tự";
-      return;
-    case "name":
-      if (!values.name.trim()) return "Nhập họ tên người liên hệ";
-      if (values.name.length > 100) return "Họ tên tối đa 100 ký tự";
-      return;
-    case "email":
-      if (!values.email.trim()) return "Nhập email, ví dụ ten@congty.vn";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(values.email.trim()))
-        return "Email chưa đúng định dạng, ví dụ ten@congty.vn";
-      return;
-    case "phone": {
-      const digits = values.phone.replace(/[\s.\-()]/g, "").replace(/^\+84/, "0");
-      if (!digits) return "Nhập số điện thoại";
-      if (!/^\d{8,12}$/.test(digits)) return "Số điện thoại cần từ 8 đến 12 chữ số";
-      return;
-    }
-    case "users":
-      if (!values.users) return "Chọn số lượng người dùng";
-      return;
-    case "products":
-      if (values.products.length === 0) return "Chọn ít nhất một sản phẩm";
-      return;
-    case "message":
-      if (typeof v === "string" && v.length > 2000) return "Nội dung tối đa 2000 ký tự";
-      return;
-    case "consent":
-      if (!values.consent) return "Bạn cần đồng ý với chính sách bảo mật để gửi yêu cầu";
-      return;
-  }
-}
 
 type Props = {
   variant?: "compact" | "full";
@@ -157,23 +115,15 @@ export function LeadForm({ variant = "compact", defaultIntent = "bao-gia", defau
     };
 
     try {
-      if (process.env.NODE_ENV === "development" && !process.env.NEXT_PUBLIC_LEAD_ENDPOINT) {
-        // `next dev` không chạy PHP: giả lập gửi thành công để kiểm tra giao diện.
-        console.info("[LeadForm] Bản dev, không gửi thật:", payload);
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      } else {
-        const response = await fetch(ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(payload),
-        });
-        const result = (await response.json().catch(() => null)) as
-          | { ok: boolean; error?: string; fields?: Errors }
-          | null;
-        if (!response.ok || !result?.ok) {
-          if (result?.fields) setErrors(result.fields);
-          throw new Error(result?.error || "Máy chủ chưa nhận được yêu cầu.");
-        }
+      const response = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = (await response.json().catch(() => null)) as { ok: boolean; error?: string; fields?: Errors } | null;
+      if (!response.ok || !result?.ok) {
+        if (result?.fields) setErrors(result.fields);
+        throw new Error(result?.error || "Máy chủ chưa nhận được yêu cầu.");
       }
       router.push(`/cam-on/?loai=${intent}`);
     } catch (error) {

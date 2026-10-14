@@ -1,63 +1,36 @@
-# Triển khai website DVAI lên Hostinger
+# Triển khai website DVAI lên Mắt Bão Vibe Host
 
-Website được build thành web tĩnh (HTML, CSS, JS) và một file PHP xử lý form. Chạy được trên mọi gói web hosting của Hostinger.
-
-Luồng triển khai:
+Website chạy bằng máy chủ Next.js (`npm run build`, rồi `npm start`). Vibe Host kết nối với repository GitHub `Rainvn88/dvai-web` và tự build lại mỗi khi nhánh `main` có commit mới.
 
 ```
-push lên main  →  GitHub Actions build  →  nhánh deploy (chỉ chứa out/)  →  Hostinger kéo vào public_html
+push lên main  →  Vibe Host build và chạy  →  https://dvai.vn
+               →  GitHub Actions chạy lint và build để kiểm tra (không triển khai)
 ```
 
-## 1. Đưa code lên GitHub
+## 1. Tạo ứng dụng trên Vibe Host
 
-1. Tạo repository mới trên GitHub, ví dụ `dvai-website`. Không tạo sẵn README.
-2. Trong thư mục dự án:
+1. Đăng nhập Vibe Host, tạo site mới, chọn **GitHub**, cấp quyền cho repository `Rainvn88/dvai-web`.
+2. Chọn nhánh `main`. Kiểu ứng dụng: **Next.js** (Node.js 22 hoặc 24).
+3. Lệnh cài đặt `npm ci`, lệnh build `npm run build`, lệnh chạy `npm start`. Cổng: dùng biến `PORT` do Vibe Host cấp (`next start` tự đọc biến này).
+4. Nhập biến môi trường ở mục 2, rồi triển khai lần đầu.
+5. Mở địa chỉ tạm Vibe Host cấp, kiểm tra trang chủ hiển thị đúng.
 
-   ```bash
-   git remote add origin https://github.com/<tai-khoan>/dvai-website.git
-   git push -u origin main
-   ```
+## 2. Biến môi trường
 
-3. Vào tab **Actions** của repository, đợi workflow «Build và deploy» chạy xong (khoảng 2 phút). Nhánh `deploy` sẽ xuất hiện.
+Nhập trong phần cài đặt môi trường (Environment variables) của site trên Vibe Host. Mẫu đầy đủ: [.env.example](.env.example).
 
-## 2. Kết nối Hostinger với nhánh deploy
+| Biến | Giá trị |
+|---|---|
+| `LEAD_TO` | `sales@dvai.vn` |
+| `MS_TENANT_ID` | Directory (tenant) ID của Microsoft 365 DVAI |
+| `MS_CLIENT_ID` | Application (client) ID của app «DVAI Website Mailer» |
+| `MS_CLIENT_SECRET` | Client secret của app (bí mật, chỉ nhập trên Vibe Host) |
+| `MS_SENDER` | `website@dvai.vn` |
+| `ALLOWED_ORIGINS` | `https://dvai.vn,https://www.dvai.vn` |
 
-1. hPanel → **Websites** → chọn dvai.vn → **Advanced** → **GIT**.
-2. Thư mục `public_html` phải trống. Nếu có file mặc định của Hostinger (`default.php`), xoá đi bằng File Manager.
-3. Điền:
-   - **Repository**: với repo public dùng `https://github.com/<tai-khoan>/dvai-website.git`. Với repo private dùng dạng SSH `git@github.com:<tai-khoan>/dvai-website.git`.
-   - **Branch**: `deploy`
-   - **Directory**: để trống (tức là `public_html`)
-4. Repo private: Hostinger hiển thị một SSH key. Copy key đó, vào GitHub → repository → **Settings** → **Deploy keys** → **Add deploy key**, dán vào, không cần quyền ghi.
-5. Bấm **Create**, rồi bấm **Deploy** lần đầu.
-6. Bật **Auto Deployment**, copy **Webhook URL**. Vào GitHub → **Settings** → **Webhooks** → **Add webhook**, dán URL, chọn sự kiện **Just the push event**. Từ giờ mỗi lần nhánh `deploy` được cập nhật, Hostinger tự kéo bản mới.
+Thiếu biến `MS_*` thì form báo lỗi «Máy chủ chưa được cấu hình gửi email». Đổi biến xong cần triển khai lại.
 
-Cách khác nếu không dùng GIT của Hostinger: tải nhánh `deploy` về và upload toàn bộ file vào `public_html` bằng File Manager hoặc FTP.
-
-## 3. Cấu hình gửi email cho form
-
-Form gửi dữ liệu tới `https://dvai.vn/api/lead.php`. File này đọc cấu hình từ `dvai-config.php` đặt **ngoài** `public_html`:
-
-```
-domains/dvai.vn/
-├── dvai-config.php      ← tạo file này
-└── public_html/
-    └── api/lead.php
-```
-
-1. Mở `deploy/dvai-config.sample.php` trong repo, sao chép nội dung.
-2. hPanel → **File Manager** → vào thư mục `domains/dvai.vn/` (cấp trên `public_html`), tạo file `dvai-config.php`, dán nội dung, điền thông tin theo cách gửi email bên dưới.
-3. Không commit `dvai-config.php` lên GitHub (đã có trong `.gitignore`).
-
-Chọn `transport` theo nơi đặt hộp thư sales@dvai.vn:
-
-| Hộp thư sales@dvai.vn đặt ở | `transport` | Ghi chú |
-|---|---|---|
-| Microsoft 365 | `graph` | Khuyến nghị. Microsoft đã ngừng SMTP xác thực bằng mật khẩu cho Exchange Online |
-| Email Hostinger | `smtp` | `smtp.hostinger.com`, cổng 465, `ssl` |
-| Chưa có email phía gửi | `mail` | Dùng hàm `mail()` của hosting; dễ vào thư rác hơn |
-
-## 4. Gửi email qua Microsoft 365 (transport `graph`)
+## 3. Quyền gửi email qua Microsoft 365
 
 Cần quyền quản trị Microsoft 365 của DVAI.
 
@@ -74,11 +47,39 @@ Cần quyền quản trị Microsoft 365 của DVAI.
    New-ManagementRoleAssignment -App <CLIENT_ID> -Role "Application Mail.Send" -CustomResourceScope "DVAI Website Sender"
    ```
 
-5. Điền vào `dvai-config.php`: `tenant_id`, `client_id`, `client_secret`, `sender` = `website@dvai.vn`, `from` = `website@dvai.vn`.
+5. Kiểm tra quyền (kết quả `InScope` phải là `True`). Quyền mới có thể mất 30 phút đến 2 giờ mới có hiệu lực:
 
-## 5. Kiểm tra sau khi deploy
+   ```powershell
+   Test-ServicePrincipalAuthorization -Identity <CLIENT_ID> -Resource website@dvai.vn
+   ```
 
-- [ ] `https://dvai.vn` mở được, `http://` và `www` tự chuyển về `https://dvai.vn`
+6. Nhập `MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET` vào Vibe Host (mục 2).
+
+## 4. Tên miền dvai.vn
+
+DNS của dvai.vn quản lý tại Mắt Bão (`ns1.matbao.vn`, `ns2.matbao.vn`).
+
+1. Trong Vibe Host, tab **Domains**: thêm `dvai.vn` làm tên miền chính và `www.dvai.vn`.
+2. Thêm vào DNS Mắt Bão đúng bản ghi Vibe Host yêu cầu (thường là A hoặc CNAME cho `@` và `www`).
+3. SSL do Let's Encrypt cấp và tự gia hạn sau khi DNS trỏ đúng.
+4. Website tự chuyển `www.dvai.vn` về `https://dvai.vn`.
+
+**Không xoá các bản ghi email Microsoft 365** đã có: MX `dvai-vn.mail.protection.outlook.com`, SPF `v=spf1 include:spf.protection.outlook.com -all`, CNAME `autodiscover`. Nên thêm hai CNAME DKIM (`selector1._domainkey`, `selector2._domainkey`, lấy trong Microsoft Defender portal → Email authentication → DKIM) và bản ghi DMARC `_dmarc` (`v=DMARC1; p=none; rua=mailto:sales@dvai.vn`).
+
+## 5. Kiểm tra sau khi triển khai
+
+Cách thử đơn giản nhất: gửi form ở `https://dvai.vn/lien-he/` rồi kiểm tra hộp thư sales@dvai.vn.
+
+Thử riêng API bằng PowerShell (gửi một email thử về sales@dvai.vn). Dữ liệu được mã hoá UTF-8 rõ ràng; `curl` trên Windows có thể làm hỏng ký tự tiếng Việt khi truyền trên dòng lệnh:
+
+```powershell
+$body = @{ intent='bao-gia'; company='Test'; name='Test'; email='test@dvai.vn'; phone='0912345678'; users='Trên 300'; products=@('Microsoft 365'); consent=$true; website=''; elapsed=5000 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri 'https://dvai.vn/api/lead/' -ContentType 'application/json; charset=utf-8' -Headers @{ Origin = 'https://dvai.vn' } -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
+```
+
+Kết quả đúng là `ok: True`. Nếu lỗi, xem log ứng dụng trên Vibe Host (dòng bắt đầu bằng `[lead]`).
+
+- [ ] `https://dvai.vn` mở được, `www.dvai.vn` tự chuyển về `https://dvai.vn`
 - [ ] Mở `https://dvai.vn/trang-khong-co/` thấy trang 404 của DVAI
 - [ ] Gửi thử form ở `/lien-he/`: chuyển sang trang cảm ơn, email về sales@dvai.vn, bấm Trả lời thì gửi đúng email khách
 - [ ] Gửi form 6 lần liên tiếp: lần thứ 6 báo «gửi nhiều yêu cầu trong thời gian ngắn»
@@ -86,4 +87,7 @@ Cần quyền quản trị Microsoft 365 của DVAI.
 - [ ] Khai báo sitemap trong Google Search Console
 - [ ] Rà soát pháp lý trang Chính sách bảo mật trước khi chạy quảng cáo
 
-Nếu form báo lỗi: hPanel → **Advanced** → **PHP Configuration** kiểm tra đã bật `curl` và `mbstring`; xem log lỗi trong `domains/dvai.vn/logs/` (dòng bắt đầu bằng `[lead]`).
+## Ghi chú
+
+- Giới hạn 5 lần gửi mỗi 15 phút theo IP được lưu trong bộ nhớ của máy chủ, sẽ đặt lại khi ứng dụng khởi động lại.
+- Nếu sau này chuyển sang hosting khác, chỉ cần nơi đó chạy được Node.js 22+ với `npm run build` và `npm start`, cùng các biến môi trường ở mục 2.

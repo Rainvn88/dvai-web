@@ -42,3 +42,6 @@ next-env.d.ts
 
 # cấu hình gửi email (đặt trên hosting, không commit)
 dvai-config.php
+
+# mẫu biến môi trường được commit
+!.env.example

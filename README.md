@@ -3,7 +3,7 @@
 Website giới thiệu và thu lead của Công ty TNHH DVAI (DVAI Corporation): Microsoft Cloud & Business Solutions for SMEs in Vietnam.
 
 - Next.js 16 (App Router), TypeScript, Tailwind CSS 4, biểu tượng Lucide
-- Xuất web tĩnh (`output: "export"`) cho Hostinger web hosting; form gửi qua `public/api/lead.php`
+- Chạy bằng máy chủ Next.js trên Mắt Bão Vibe Host; form gửi qua API `/api/lead/`, email qua Microsoft Graph
 - Triển khai: xem [DEPLOY.md](DEPLOY.md)
 - Hệ thống thiết kế: [design-system/dvai/MASTER.md](design-system/dvai/MASTER.md)
 
@@ -11,12 +11,13 @@ Website giới thiệu và thu lead của Công ty TNHH DVAI (DVAI Corporation):
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000, form giả lập gửi thành công
-npm run build    # xuất web tĩnh vào out/
+npm run dev      # http://localhost:3000
+npm run build    # build bản production
+npm start        # chạy bản production
 npm run lint
 ```
 
-`next dev` không chạy PHP. Ở chế độ dev, form chỉ ghi dữ liệu ra console và chuyển sang trang cảm ơn.
+Muốn gửi email thật khi chạy trên máy, sao chép `.env.example` thành `.env.local` và điền giá trị. Nếu chưa có biến `MS_*`, ở chế độ dev API chỉ ghi nội dung email ra terminal và trả về thành công.
 
 ## Sửa nội dung
 
@@ -41,7 +42,7 @@ Thêm bài viết: thêm một mục vào mảng `articles` trong `src/content/a
 
 ```
 src/
-├── app/                 các trang (mỗi thư mục là một URL)
+├── app/                 các trang (mỗi thư mục là một URL), app/api/lead là API form
 ├── components/
 │   ├── layout/          header, footer, thanh CTA mobile
 │   ├── sections/        khối nội dung dùng lại giữa các trang
@@ -50,10 +51,7 @@ src/
 │   ├── demo/            app duyệt chi phí mẫu ở hero
 │   └── seo/             dữ liệu cấu trúc JSON-LD
 ├── content/             nội dung dùng chung
-└── lib/                 metadata
-public/
-├── .htaccess            HTTPS, bỏ www, 404, cache
-├── api/lead.php         nhận form, gửi email
-└── brand/               logo
-deploy/dvai-config.sample.php   mẫu cấu hình gửi email (đặt ngoài public_html)
+└── lib/                 metadata, quy tắc kiểm tra form (lead.ts), gửi email Graph (mailer.ts)
+public/brand/            logo
+.env.example             danh sách biến môi trường cần nhập trên Vibe Host
 ```
