@@ -45,6 +45,7 @@ export const products = [
   "Azure",
   "Copilot",
   "Ứng dụng thiết kế riêng",
+  "AI Agent hải quan và logistics",
   "Chuyển đổi dữ liệu",
   "Quản trị và vận hành",
 ] as const;
@@ -78,6 +79,7 @@ export const mainNav: NavEntry[] = [
   {
     label: "Giải pháp",
     items: [
+      { label: "AI Agent hải quan và logistics", href: "/giai-phap/ai-agent-hai-quan/", desc: "Đọc chứng từ, gợi ý mã HS, điền trước tờ khai" },
       { label: "Làm việc số", href: "/microsoft-365/", desc: "Email, họp, lưu trữ tài liệu tập trung" },
       { label: "Ứng dụng thiết kế riêng", href: "/power-apps/#thiet-ke-rieng", desc: "App vận hành làm theo nghiệp vụ của bạn" },
       { label: "Tự động hoá quy trình", href: "/power-apps/#goi-ung-dung", desc: "Ứng dụng duyệt và luồng tự động" },
@@ -114,6 +116,7 @@ export const footerNav: NavGroup[] = [
   {
     label: "Công ty",
     items: [
+      { label: "AI Agent hải quan", href: "/giai-phap/ai-agent-hai-quan/" },
       { label: "Triển khai và chuyển đổi", href: "/dich-vu/trien-khai-chuyen-doi/" },
       { label: "Quản trị và vận hành", href: "/dich-vu/quan-tri-van-hanh/" },
       { label: "Dự án", href: "/du-an/" },
@@ -125,4 +128,4 @@ export const footerNav: NavGroup[] = [
 ];
 
 export const trademarkNote =
-  "Microsoft, Microsoft 365, Azure, Power Apps, Power Automate, Power BI, Copilot là nhãn hiệu của Microsoft Corporation.";
+  "Microsoft, Microsoft 365, Azure, Power Apps, Power Automate, Power BI, Copilot là nhãn hiệu của Microsoft Corporation. Claude là nhãn hiệu của Anthropic, PBC.";

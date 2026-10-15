@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChartColumn, Cloud, LayoutGrid, Mail, Server, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 import { ApprovalDemo } from "@/components/demo/ApprovalDemo";
+import { AiAgentMini, DevStatus } from "@/components/sections/AiAgents";
 import { AppPackagesDark } from "@/components/sections/AppPackages";
 import { ArticleCards } from "@/components/sections/ArticleCards";
 import { CaseCards, StatsRow } from "@/components/sections/CaseCards";
@@ -137,7 +138,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section" id="san-pham">
+      <section className="section" id="ai-agent">
+        <div className="wrap">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-5">
+            <div className="grid gap-4">
+              <DevStatus />
+              <SectionHeading
+                eyebrow="AI Agent hải quan"
+                title={
+                  <>
+                    Bước tiếp theo: <em>AI Agent cho hải quan và logistics.</em>
+                  </>
+                }
+                lede="DVAI đang phát triển AI Agent dùng mô hình Claude của Anthropic để đọc chứng từ, xác định mã HS, điền trước tờ khai và đề xuất bố trí xe tải. Đang nhận doanh nghiệp giao nhận, logistics tham gia thử nghiệm."
+              />
+            </div>
+            <Link href="/giai-phap/ai-agent-hai-quan/" className="link-more">
+              Xem chi tiết AI Agent →
+            </Link>
+          </div>
+          <AiAgentMini />
+        </div>
+      </section>
+
+      <section className="section pt-0" id="san-pham">
         <div className="wrap">
           <SectionHeading
             eyebrow="Sản phẩm và dịch vụ"

@@ -15,6 +15,7 @@ const pages = [
   "/power-bi/",
   "/azure/",
   "/copilot/",
+  "/giai-phap/ai-agent-hai-quan/",
   "/dich-vu/trien-khai-chuyen-doi/",
   "/dich-vu/quan-tri-van-hanh/",
   "/du-an/",

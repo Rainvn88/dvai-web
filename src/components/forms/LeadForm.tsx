@@ -51,6 +51,7 @@ export function LeadForm({ variant = "compact", defaultIntent = "bao-gia", defau
   const [failedSubmits, setFailedSubmits] = useState(0);
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [serverError, setServerError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
 
   const markStart = () => {
     if (!startedAt.current) startedAt.current = Date.now();
@@ -92,6 +93,7 @@ export function LeadForm({ variant = "compact", defaultIntent = "bao-gia", defau
     setShowSummary(false);
     setStatus("sending");
     setServerError("");
+    setErrorCode("");
 
     const query = new URLSearchParams(window.location.search);
     const payload = {
@@ -120,9 +122,12 @@ export function LeadForm({ variant = "compact", defaultIntent = "bao-gia", defau
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(payload),
       });
-      const result = (await response.json().catch(() => null)) as { ok: boolean; error?: string; fields?: Errors } | null;
+      const result = (await response.json().catch(() => null)) as
+        | { ok: boolean; error?: string; fields?: Errors; code?: string }
+        | null;
       if (!response.ok || !result?.ok) {
         if (result?.fields) setErrors(result.fields);
+        setErrorCode(result?.code ?? `http-${response.status}`);
         throw new Error(result?.error || "Máy chủ chưa nhận được yêu cầu.");
       }
       router.push(`/cam-on/?loai=${intent}`);
@@ -422,6 +427,7 @@ export function LeadForm({ variant = "compact", defaultIntent = "bao-gia", defau
         {status === "error" && (
           <p className="rounded-lg bg-danger-soft p-3 text-[13.5px] text-danger">
             {serverError} Vui lòng thử lại, hoặc gọi hotline {site.hotline} hay email {site.email}.
+            {errorCode && <span className="mt-1 block text-[12px] opacity-80">Mã lỗi: {errorCode}</span>}
           </p>
         )}
       </div>

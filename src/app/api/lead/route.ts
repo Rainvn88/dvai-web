@@ -2,7 +2,7 @@
 // Cấu hình bằng biến môi trường trên Vibe Host (xem .env.example và DEPLOY.md).
 import { products, type LeadIntent } from "@/content/site";
 import { intentLabels, limits, validateLead, type LeadValues } from "@/lib/lead";
-import { graphConfig, sendMail } from "@/lib/mailer";
+import { graphConfig, MailError, sendMail } from "@/lib/mailer";
 
 const RATE_MAX = 5;
 const RATE_WINDOW_MS = 15 * 60 * 1000;
@@ -137,7 +137,9 @@ export async function POST(request: Request) {
     await sendMail(config, { to, subject, body, replyTo: { address: values.email, name: values.name } });
   } catch (error) {
     console.error("[lead]", error instanceof Error ? error.message : error);
-    return json(502, { ok: false, error: "Chưa gửi được yêu cầu." });
+    // Mã lỗi ngắn giúp chẩn đoán từ trình duyệt; không chứa thông tin bí mật.
+    const code = error instanceof MailError ? error.code : "unknown";
+    return json(502, { ok: false, error: "Chưa gửi được yêu cầu.", code });
   }
 
   hits.set(ip, [...recent, now]);
